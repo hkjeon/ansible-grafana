@@ -1,0 +1,48 @@
+---
+- name: Install dependencies for grafana
+  yum:
+    name: 
+      - initscripts
+      - net-tools
+      - vim
+      - tcpdump
+      - urw-fonts
+      - wget
+
+- name: Add Grafana Repository
+  template:
+    src: grafana.repo.j2
+    dest: /etc/yum.repos.d/grafana.repo
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Configuration Grafana HTTP Port
+  template:
+    src: grafana.ini.j2
+    dest: /etc/grafana/grafana.ini
+
+- name: Install the latest version of Grafana.
+  yum:
+    name: grafana
+    state: latest
+  notify:
+    - restart grafana-server
+
+- name: enable for grafana
+  systemd: 
+    name: grafana-server
+    enabled: true
+    state: started
+
+- name: Check Port 3000 for Grafana Dashboard
+  shell:
+    cmd: "/usr/bin/curl --connect-timeout 10 --silent --show-error '{{ grafana_ip }}':3000"
+    warn: no
+    executable: /bin/bash
+  register: check_port
+
+- name: Check port 3000 result
+  debug:
+    msg:
+      - "{{ check_port.stdout }}"
