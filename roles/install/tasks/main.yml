@@ -1,7 +1,9 @@
 ---
 - name: Install dependencies for grafana
   yum:
-    name: 
+    name: "{{ item }}"
+    state: latest
+  with_items:
       - initscripts
       - net-tools
       - vim
